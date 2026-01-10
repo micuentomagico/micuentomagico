@@ -5,7 +5,14 @@ import OpenAI from "openai";
 import Stripe from "stripe";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+app.options("*", cors());
+
+
 app.use(express.json());
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -26,13 +33,13 @@ app.post("/create-checkout-session", async (req, res) => {
             product_data: {
               name: "Cuento personalizado",
             },
-            unit_amount: 299, // 2,99 €
+            unit_amount: 299,
           },
           quantity: 1,
         },
       ],
-      success_url: "http://localhost:3000//?payment=success",
-      cancel_url: "http://localhost:3000/?payment=cancel",
+      success_url: "https://regal-pudding-2302e3.netlify.app/?payment=success",
+      cancel_url: "https://regal-pudding-2302e3.netlify.app/?payment=cancel",
     });
 
     res.json({ url: session.url });
@@ -41,7 +48,6 @@ app.post("/create-checkout-session", async (req, res) => {
     res.status(500).json({ error: "Error creando sesión de pago" });
   }
 });
-
 
 app.post("/generate-story", async (req, res) => {
   const { prompt } = req.body;
