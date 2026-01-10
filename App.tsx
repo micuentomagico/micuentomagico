@@ -546,27 +546,35 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
 
   const handleStripeCheckout = async () => {
     try {
-      const response = await fetch("https://micuentomagico-backend.onrender.com", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
+      const response = await fetch(
+        "https://TU-BACKEND.onrender.com/create-checkout-session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
-
-      if (!response.ok) {
-        throw new Error("Error creando sesión de pago");
-      }
+      );
 
       const data = await response.json();
 
+      if (!response.ok) {
+        console.error("Respuesta backend:", data);
+        throw new Error("Backend error");
+      }
+
       if (data.url) {
         window.location.href = data.url;
+      } else {
+        console.error("No vino URL de Stripe:", data);
+        alert("Error: Stripe no devolvió la URL");
       }
     } catch (err) {
+      console.error("❌ Error iniciando pago:", err);
       alert("Hubo un error iniciando el pago. Inténtalo de nuevo.");
-      console.error(err);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-indigo-50 p-6 flex flex-col items-center justify-center">
