@@ -547,7 +547,7 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
   const handleStripeCheckout = async () => {
     try {
       const response = await fetch(
-        "https://TU-BACKEND.onrender.com/create-checkout-session",
+        "https://micuentomagico-backend.onrender.com/create-checkout-session",
         {
           method: "POST",
           headers: {
