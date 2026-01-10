@@ -1,5 +1,7 @@
 import { UserPreferences, Story } from "../types";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export async function generateStory(prefs: UserPreferences): Promise<Story> {
   console.log("👉 generateStory LLAMADO con:", prefs);
 
@@ -31,13 +33,14 @@ Primera línea: Título del cuento
 Resto: párrafos separados por salto de línea.
 `;
 
-  const response = await fetch("http://localhost:3001/generate-story", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ prompt })
-  });
+  const response = await fetch(`${API_URL}/generate-story`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ prompt })
+});
+
 
   if (!response.ok) {
     throw new Error("Error llamando al backend");
