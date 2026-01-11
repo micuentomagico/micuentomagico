@@ -701,6 +701,19 @@ export default function App() {
   }
 }, []);
 
+useEffect(() => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      const parsedStories = JSON.parse(stored);
+      setSavedStories(parsedStories);
+    } catch (e) {
+      console.error("Error cargando la biblioteca:", e);
+    }
+  }
+}, []);
+
+
   const saveStoryToLibrary = (storyToSave: Story) => {
     setSavedStories(prev => {
       const alreadyExists = prev.find(s => s.id === storyToSave.id);
