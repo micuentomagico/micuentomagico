@@ -170,6 +170,7 @@ const CustomizationForm: React.FC<{
 }> = ({ onGenerate, onBack }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState(4);
+  const [gender, setGender] = useState<'niño' | 'niña'>('niño');
   const [interestsInput, setInterestsInput] = useState('');
   const [storyType, setStoryType] = useState<StoryType>('mágica');
   const [language, setLanguage] = useState('Español');
@@ -189,7 +190,7 @@ const CustomizationForm: React.FC<{
     e.preventDefault();
     if (!name || !interestsInput) return;
     const interests = interestsInput.split(',').map(i => i.trim()).filter(i => i.length > 0);
-    onGenerate({ name, age, interests, storyType, language });
+    onGenerate({ name, age, gender, interests, storyType, language });
   };
 
   return (
@@ -256,6 +257,40 @@ const CustomizationForm: React.FC<{
                 ))}
             </div>
         </div>
+
+        {/* Sección 2.5: Género */}
+        <div>
+          <label className="block text-xs font-black uppercase tracking-widest text-indigo-300 mb-4 ml-2">
+            Género del protagonista
+          </label>
+
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setGender('niño')}
+              className={`flex-1 py-4 rounded-2xl font-bold transition-all border-2 ${
+                gender === 'niño'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg'
+                  : 'bg-white text-gray-400 border-transparent hover:border-indigo-100'
+              }`}
+            >
+              👦 Niño
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setGender('niña')}
+              className={`flex-1 py-4 rounded-2xl font-bold transition-all border-2 ${
+                gender === 'niña'
+                  ? 'bg-pink-500 text-white border-pink-500 shadow-lg'
+                  : 'bg-white text-gray-400 border-transparent hover:border-pink-100'
+              }`}
+            >
+              👧 Niña
+            </button>
+          </div>
+        </div>
+
 
         {/* Sección 3: Tipo de Historia (Grid de Tarjetas) */}
         <div>
@@ -851,7 +886,6 @@ useEffect(() => {
       {screen === AppScreen.PAYMENT && (
         <PaymentScreen onComplete={() => {
           setIsPaid(true);
-          if (story) saveStoryToLibrary(story);
           setScreen(AppScreen.SUCCESS);
         }} />
       )}

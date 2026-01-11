@@ -1,9 +1,17 @@
+export type StoryType =
+  | 'aventura'
+  | 'mágica'
+  | 'tranquila'
+  | 'espacial'
+  | 'animales'
+  | 'misterio';
 
-export type StoryType = 'aventura' | 'mágica' | 'tranquila' | 'espacial' | 'animales' | 'misterio';
+export type Gender = 'niño' | 'niña';
 
 export interface UserPreferences {
   name: string;
   age: number;
+  gender: Gender;
   interests: string[];
   storyType: StoryType;
   language: string;
@@ -27,3 +35,4 @@ export enum AppScreen {
   SUCCESS = 'SUCCESS',
   LIBRARY = 'LIBRARY'
 }
+
