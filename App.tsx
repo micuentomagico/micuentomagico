@@ -8,40 +8,84 @@ const ADMIN_MODE = import.meta.env.VITE_ADMIN_MODE === "true";
 
 
   // --- Utility for PDF Download ---
-  const downloadStory = (story: Story) => {
-  const doc = new jsPDF();
-  const margin = 20;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const maxLineWidth = pageWidth - (margin * 2);
+    const downloadStory = (story: Story) => {
+    const doc = new jsPDF({
+      unit: "mm",
+      format: "a4",
+    });
 
-  // Configurar Título
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  const titleLines = doc.splitTextToSize(story.title, maxLineWidth);
-  doc.text(titleLines, margin, 30);
-  
-  let cursorY = 30 + (titleLines.length * 10) + 10;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 25;
+    const maxWidth = pageWidth - margin * 2;
 
-  // Configurar Cuerpo del texto
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  
-  // Unimos todos los párrafos con saltos de línea dobles
-  const fullContent = story.pages.flat().join('\n\n');
-  const splitText = doc.splitTextToSize(fullContent, maxLineWidth);
-  
-  for (let i = 0; i < splitText.length; i++) {
-    if (cursorY > 280) {
-      doc.addPage();
-      cursorY = 20;
-    }
-    doc.text(splitText[i], margin, cursorY);
-    cursorY += 7;
-  }
+    // 🎨 PORTADA
+    doc.setFillColor(243, 232, 255);
+    doc.rect(0, 0, pageWidth, pageHeight, "F");
 
-  // Guardar archivo
-  doc.save(`${story.title.replace(/\s+/g, '_')}.pdf`);
-};
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
+    doc.setTextColor(45, 49, 66);
+    doc.text(story.title, pageWidth / 2, 80, { align: "center", maxWidth });
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "normal");
+    doc.text("Un cuento mágico creado especialmente", pageWidth / 2, 105, {
+      align: "center",
+    });
+
+    doc.setFontSize(14);
+    doc.text(
+      `Fecha: ${new Date(story.createdAt).toLocaleDateString("es-ES")}`,
+      pageWidth / 2,
+      125,
+      { align: "center" }
+    );
+
+    doc.setFontSize(12);
+    doc.setTextColor(120);
+    doc.text("Mi Cuento Mágico ✨", pageWidth / 2, pageHeight - 40, {
+      align: "center",
+    });
+
+    // 📖 CONTENIDO
+    doc.addPage();
+    doc.setTextColor(45, 49, 66);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+
+    let cursorY = margin;
+
+    story.pages.flat().forEach((paragraph) => {
+      const lines = doc.splitTextToSize(paragraph, maxWidth);
+
+      if (cursorY + lines.length * 8 > pageHeight - margin) {
+        doc.addPage();
+        cursorY = margin;
+      }
+
+      doc.text(lines, margin, cursorY);
+      cursorY += lines.length * 8 + 6;
+    });
+
+    // 💖 PÁGINA FINAL
+    doc.addPage();
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(16);
+    doc.setTextColor(90);
+
+    doc.text(
+      "Este cuento fue creado con cariño\npara ser leído una y otra vez.\n\nGracias por confiar en\nMi Cuento Mágico ✨",
+      pageWidth / 2,
+      pageHeight / 2,
+      { align: "center" }
+    );
+
+    // 💾 GUARDAR
+    const safeTitle = story.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    doc.save(`${safeTitle}.pdf`);
+  };
+
 
 // --- Sub-components ---
 
@@ -692,6 +736,14 @@ const SuccessScreen: React.FC<{ onFinish: () => void; story: Story | null }> = (
       >
         Continuar leyendo
       </button>
+      {story && (
+        <button
+          onClick={() => downloadStory(story)}
+          className="w-full bg-white border-2 border-indigo-200 text-indigo-700 font-bold py-4 rounded-2xl shadow-sm"
+        >
+          📥 Descargar cuento en PDF
+        </button>
+      )}
       </div>
   </div>
 );
