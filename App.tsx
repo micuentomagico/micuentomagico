@@ -554,8 +554,10 @@ const Paywall: React.FC<{ onPurchase: () => void; onCancel: () => void; childNam
       >
         Desbloquear final – 2,99 €
       </button>
-      <p>Pago único · Sin suscripciones</p>
-      <p>Acceso inmediato</p>
+      <div className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+          Pago único · Sin suscripciones
+          Acceso inmediato
+      </div>
       <button 
         onClick={onCancel}
         className="w-full py-2 text-gray-400 font-bold hover:text-gray-600 transition-colors"
@@ -911,7 +913,8 @@ useEffect(() => {
     setPrefs(userPrefs);
     setScreen(AppScreen.GENERATING);
     setCurrentReadingPage(0);
-    
+    localStorage.removeItem('currentPage');
+
     try {
       const storyData = await generateStory(userPrefs);
       if (ADMIN_MODE) {
@@ -943,10 +946,18 @@ useEffect(() => {
   };
 
   const handleSelectStoryFromLibrary = (selectedStory: Story) => {
-    setStory(selectedStory);
-    setIsPaid(true);
-    setCurrentReadingPage(0);
-    setScreen(AppScreen.READER);
+      setStory(selectedStory);
+      setIsPaid(true);
+      
+      // Verificamos si hay una página guardada en localStorage
+      const savedPage = localStorage.getItem('currentPage');
+      if (savedPage) {
+        setCurrentReadingPage(parseInt(savedPage));  // Cargamos la página guardada
+      } else {
+        setCurrentReadingPage(0);  // Si no hay página guardada, empezamos desde la primera
+      }
+
+      setScreen(AppScreen.READER);
   };
 
   return (
