@@ -55,7 +55,7 @@ const ADMIN_MODE = import.meta.env.VITE_ADMIN_MODE === "true";
     doc.setFontSize(12);
     doc.setTextColor(130);
     doc.text(
-      "Mi Cuento Mágico ✨",
+      "Mi Cuento Mágico",
       pageWidth / 2,
       pageHeight - 40,
       { align: "center" }
@@ -64,37 +64,37 @@ const ADMIN_MODE = import.meta.env.VITE_ADMIN_MODE === "true";
     /* ---------- CONTENIDO ---------- */
     doc.addPage();
 
-    story.pages.forEach((page) => {
-      let cursorY = margin;
+    let cursorY = margin;
 
-      page.forEach((paragraph) => {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(14);
-        doc.setTextColor(45, 49, 66);
+    const allParagraphs = story.pages.flat();
 
-        const lines = doc.splitTextToSize(paragraph, maxWidth);
-        const blockHeight = lines.length * 8;
+    allParagraphs.forEach((paragraph) => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(14);
+      doc.setTextColor(45, 49, 66);
 
-        if (cursorY + blockHeight > pageHeight - margin - 20) {
-          addPageNumber();
-          doc.addPage();
-          cursorY = margin;
-        }
+      const lines = doc.splitTextToSize(paragraph, maxWidth);
+      const blockHeight = lines.length * 8;
 
-        doc.text(lines, margin, cursorY);
-        cursorY += blockHeight + 10;
-      });
+      if (cursorY + blockHeight > pageHeight - margin - 20) {
+        addPageNumber();
+        doc.addPage();
+        cursorY = margin;
+      }
 
-      addPageNumber();
-      doc.addPage();
+      doc.text(lines, margin, cursorY);
+      cursorY += blockHeight + 10;
     });
+
+    addPageNumber();
+
 
     /* ---------- PÁGINA FINAL ---------- */
     doc.setFont("helvetica", "normal");
     doc.setFontSize(16);
     doc.setTextColor(100);
     doc.text(
-      "Este cuento fue creado con cariño\npara ser leído una y otra vez.\n\nGracias por confiar en\nMi Cuento Mágico ✨",
+      "Este cuento fue creado con cariño\npara ser leído una y otra vez.\n\nGracias por confiar en\nMi Cuento Mágico",
       pageWidth / 2,
       pageHeight / 2,
       { align: "center" }
