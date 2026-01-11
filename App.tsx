@@ -19,61 +19,99 @@ const ADMIN_MODE = import.meta.env.VITE_ADMIN_MODE === "true";
     const margin = 25;
     const maxWidth = pageWidth - margin * 2;
 
-    // 🎨 PORTADA
-    doc.setFillColor(243, 232, 255);
+    let pageNumber = 1;
+
+    const addPageNumber = () => {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text(
+        `Página ${pageNumber}`,
+        pageWidth / 2,
+        pageHeight - 15,
+        { align: "center" }
+      );
+      pageNumber++;
+    };
+
+    // 📕 PORTADA (mismo fondo que el libro)
+    doc.setFillColor(251, 247, 242); // #FBF7F2
     doc.rect(0, 0, pageWidth, pageHeight, "F");
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(26);
     doc.setTextColor(45, 49, 66);
-    doc.text(story.title, pageWidth / 2, 80, { align: "center", maxWidth });
-
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "normal");
-    doc.text("Un cuento mágico creado especialmente", pageWidth / 2, 105, {
+    doc.text(story.title, pageWidth / 2, 75, {
       align: "center",
+      maxWidth,
     });
 
-    doc.setFontSize(14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(16);
+    doc.setTextColor(90);
     doc.text(
-      `Fecha: ${new Date(story.createdAt).toLocaleDateString("es-ES")}`,
+      "Un cuento mágico creado especialmente",
+      pageWidth / 2,
+      105,
+      { align: "center" }
+    );
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(109, 40, 217);
+    doc.text(
+      `para ${story.pages.flat().join(" ").match(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b/)?.[0] || ""}`,
       pageWidth / 2,
       125,
       { align: "center" }
     );
 
+    doc.setFontSize(11);
+    doc.setTextColor(160);
+    doc.text(
+      new Date(story.createdAt).toLocaleDateString("es-ES"),
+      pageWidth / 2,
+      pageHeight - 45,
+      { align: "center" }
+    );
+
     doc.setFontSize(12);
     doc.setTextColor(120);
-    doc.text("Mi Cuento Mágico ✨", pageWidth / 2, pageHeight - 40, {
-      align: "center",
-    });
+    doc.text(
+      "Mi Cuento Mágico ✨",
+      pageWidth / 2,
+      pageHeight - 30,
+      { align: "center" }
+    );
 
     // 📖 CONTENIDO
     doc.addPage();
-    doc.setTextColor(45, 49, 66);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(14);
-
-    let cursorY = margin;
 
     story.pages.flat().forEach((paragraph) => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(14);
+      doc.setTextColor(45, 49, 66);
+
+      let cursorY = margin;
       const lines = doc.splitTextToSize(paragraph, maxWidth);
 
-      if (cursorY + lines.length * 8 > pageHeight - margin) {
+      if (cursorY + lines.length * 8 > pageHeight - margin - 20) {
+        addPageNumber();
         doc.addPage();
         cursorY = margin;
       }
 
       doc.text(lines, margin, cursorY);
-      cursorY += lines.length * 8 + 6;
+      cursorY += lines.length * 8 + 10;
     });
+
+    addPageNumber();
 
     // 💖 PÁGINA FINAL
     doc.addPage();
+
     doc.setFont("helvetica", "italic");
     doc.setFontSize(16);
-    doc.setTextColor(90);
-
+    doc.setTextColor(100);
     doc.text(
       "Este cuento fue creado con cariño\npara ser leído una y otra vez.\n\nGracias por confiar en\nMi Cuento Mágico ✨",
       pageWidth / 2,
@@ -81,10 +119,13 @@ const ADMIN_MODE = import.meta.env.VITE_ADMIN_MODE === "true";
       { align: "center" }
     );
 
+    addPageNumber();
+
     // 💾 GUARDAR
     const safeTitle = story.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
     doc.save(`${safeTitle}.pdf`);
   };
+
 
 
 // --- Sub-components ---
