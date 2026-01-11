@@ -400,7 +400,7 @@ const StoryCover: React.FC<{ story: Story; name?: string; onStartReading: () => 
 );
 
 const Paywall: React.FC<{ onPurchase: () => void; onCancel: () => void; childName?: string;}> = ({ onPurchase, onCancel, childName }) => (
-  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md p-4">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto">
     <div className="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl animate-in slide-in-from-bottom duration-500 border-t-8 border-yellow-400">
       <div className="text-center mb-8">
         <div className="text-6xl mb-4">⭐</div>
@@ -750,13 +750,15 @@ useEffect(() => {
 
 
   const saveStoryToLibrary = (storyToSave: Story) => {
-    setSavedStories(prev => {
-      const alreadyExists = prev.find(s => s.id === storyToSave.id);
-      if (alreadyExists) return prev;
-      const newList = [...prev, storyToSave];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newList));
-      return newList;
-    });
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const currentStories: Story[] = stored ? JSON.parse(stored) : [];
+
+    const alreadyExists = currentStories.find(s => s.id === storyToSave.id);
+    if (alreadyExists) return;
+
+    const newList = [...currentStories, storyToSave];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newList));
+    setSavedStories(newList);
   };
 
   const deleteStory = (id: string) => {
@@ -791,12 +793,14 @@ useEffect(() => {
   };
 
   const handleFinishReading = () => {
-    if (isPaid) {
+    if (isPaid && story) {
+      saveStoryToLibrary(story);
       setScreen(AppScreen.LIBRARY);
     } else {
       setScreen(AppScreen.SUCCESS);
     }
   };
+
 
   const handleOpenLibrary = () => {
     setScreen(AppScreen.LIBRARY);
