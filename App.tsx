@@ -1020,11 +1020,26 @@ useEffect(() => {
       )}
 
       {screen === AppScreen.PAYMENT && (
-        <PaymentScreen onComplete={() => {
-          setIsPaid(true);
-          setScreen(AppScreen.SUCCESS);
-        }} />
+        <PaymentScreen
+          onComplete={() => {
+            if (!story) return;
+
+            setIsPaid(true);
+
+            // 1. Guardar en biblioteca
+            saveStoryToLibrary(story);
+
+            // 2. Descargar PDF automáticamente
+            setTimeout(() => {
+              downloadStory(story);
+            }, 500);
+
+            // 3. Ir a pantalla de éxito
+            setScreen(AppScreen.SUCCESS);
+          }}
+        />
       )}
+
 
       {screen === AppScreen.SUCCESS && showPaymentSuccess && (
         <SuccessScreen
