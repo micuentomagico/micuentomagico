@@ -734,9 +734,12 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
   return (
     <div className="min-h-screen bg-indigo-50 p-6 flex flex-col items-center justify-center">
       <div className="max-w-md w-full bg-white p-10 rounded-[3rem] shadow-2xl border border-indigo-100">
-        <h2 className="text-3xl font-bold mb-8 text-center text-[#2D3142]">
-          Finalizar compra
+        <h2 className="text-3xl font-bold mb-4 text-center text-[#2D3142]">
+          Estás a un paso de terminar el cuento ✨
         </h2>
+        <p className="text-center text-gray-500 mb-8 text-sm">
+          El pago es seguro y el cuento será tuyo para siempre.
+        </p>
         
         <div className="space-y-4 mb-10">
           <div className="flex justify-between items-center p-6 bg-indigo-50/50 rounded-3xl border-2 border-indigo-200">
@@ -794,32 +797,28 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
   );
 };
 
-
-
   const SuccessScreen: React.FC<{
     onFinish: () => void;
     story: Story | null;
-    onDownload: () => void;
-  }> = ({ onFinish, story, onDownload }) => (
+  }> = ({ onFinish, story }) => (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
       <div className="text-8xl mb-8 animate-bounce drop-shadow-xl">🌟</div>
 
-      <h2 className="text-4xl font-bold mb-3 text-indigo-900 text-center">
-        ¡Pago completado con éxito!
-      </h2>
-
-      <p className="text-gray-500 text-center mb-12 max-w-sm font-medium leading-relaxed">
-        Tu cuento ya es tuyo.  
-        Te recomendamos descargarlo para guardarlo para siempre.
+      <p className="text-gray-500 text-center mb-10 max-w-sm font-medium leading-relaxed">
+        Tu cuento ya es tuyo 💜  
+        Se ha guardado en tu biblioteca y además puedes descargarlo en PDF
+        para no perderlo nunca.
       </p>
 
       <div className="w-full max-w-xs space-y-4">
-        <button
-          onClick={onDownload}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-5 rounded-2xl shadow-xl transition-all"
-        >
-          ⬇️ Descargar mi cuento (PDF)
-        </button>
+        {story && (
+          <button
+            onClick={() => downloadStory(story)}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-5 rounded-2xl shadow-xl transition-all"
+          >
+            ⬇️ Descargar mi cuento (PDF)
+          </button>
+        )}
 
         <button
           onClick={onFinish}
@@ -1049,14 +1048,15 @@ useEffect(() => {
       )}
 
 
-      {screen === AppScreen.SUCCESS && showPaymentSuccess && (
+      {screen === AppScreen.SUCCESS && showPaymentSuccess && story && (
         <SuccessScreen
           story={story}
+          onDownload={() => {
+            downloadStory(story, prefs?.name);
+          }}
           onFinish={() => {
             setShowPaymentSuccess(false);
-            if (story) {
-              setScreen(AppScreen.READER);
-            }
+            setScreen(AppScreen.READER);
           }}
         />
       )}
