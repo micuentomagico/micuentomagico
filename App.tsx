@@ -679,9 +679,10 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
 const SuccessScreen: React.FC<{ onFinish: () => void; story: Story | null }> = ({ onFinish, story }) => (
   <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
     <div className="text-8xl mb-8 animate-bounce drop-shadow-xl">🌟</div>
-    <h2 className="text-4xl font-bold mb-3 text-indigo-900 text-center">¡Es todo tuyo!</h2>
+    <h2 className="text-4xl font-bold mb-3 text-indigo-900 text-center"> ¡Pago completado con éxito!</h2>
     <p className="text-gray-500 text-center mb-12 max-w-sm font-medium leading-relaxed">
-      La historia se ha guardado en tu biblioteca. Disfruta del viaje con tu peque.
+      Tu cuento ya está guardado en tu biblioteca y puedes leerlo siempre que quieras.
+      Gracias por apoyar la creación de historias mágicas 💜
     </p>
     
     <div className="w-full max-w-xs space-y-4">
@@ -707,34 +708,37 @@ export default function App() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [savedStories, setSavedStories] = useState<Story[]>([]);
   const [currentReadingPage, setCurrentReadingPage] = useState(0);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | "legal" | "privacy" | "terms">(null);
 
 
   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const paymentStatus = params.get("payment");
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get("payment");
 
-  if (paymentStatus === "success") {
-    const pending = localStorage.getItem("pending_story");
+    if (paymentStatus === "success") {
+      const pending = localStorage.getItem("pending_story");
 
-    if (pending) {
-      const parsedStory = JSON.parse(pending);
-      setStory(parsedStory);
-      setIsPaid(true);
-      saveStoryToLibrary(parsedStory);
-      localStorage.removeItem("pending_story");
-      setCurrentReadingPage(0);
-      setScreen(AppScreen.READER);
+      if (pending) {
+        const parsedStory = JSON.parse(pending);
+        setStory(parsedStory);
+        setIsPaid(true);
+        saveStoryToLibrary(parsedStory);
+        localStorage.removeItem("pending_story");
+        setCurrentReadingPage(0);
+        setShowPaymentSuccess(true);
+        setScreen(AppScreen.SUCCESS);
+      }
+
+      window.history.replaceState({}, "", "/");
     }
 
-    window.history.replaceState({}, "", "/");
-  }
+    if (paymentStatus === "cancel") {
+      window.history.replaceState({}, "", "/");
+      setScreen(AppScreen.READER);
+    }
+  }, []);
 
-  if (paymentStatus === "cancel") {
-    window.history.replaceState({}, "", "/");
-    setScreen(AppScreen.READER);
-  }
-}, []);
 
 useEffect(() => {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -894,10 +898,11 @@ useEffect(() => {
         }} />
       )}
 
-      {screen === AppScreen.SUCCESS && (
+      {screen === AppScreen.SUCCESS && showPaymentSuccess && (
         <SuccessScreen
           story={story}
           onFinish={() => {
+            setShowPaymentSuccess(false);
             if (story) {
               setCurrentReadingPage(0);
               setScreen(AppScreen.READER);
@@ -905,6 +910,7 @@ useEffect(() => {
           }}
         />
       )}
+
       {legalOpen && (
         <LegalModal
           type={legalOpen}
