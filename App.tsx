@@ -796,33 +796,41 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
 
 
 
-const SuccessScreen: React.FC<{ onFinish: () => void; story: Story | null }> = ({ onFinish, story }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
-    <div className="text-8xl mb-8 animate-bounce drop-shadow-xl">🌟</div>
-    <h2 className="text-4xl font-bold mb-3 text-indigo-900 text-center"> ¡Pago completado con éxito!</h2>
-    <p className="text-gray-500 text-center mb-12 max-w-sm font-medium leading-relaxed">
-      Tu cuento ya está guardado en tu biblioteca y puedes leerlo siempre que quieras.
-      Gracias por apoyar la creación de historias mágicas 💜
-    </p>
-    
-    <div className="w-full max-w-xs space-y-4">
-      <button 
-        onClick={onFinish}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl shadow-xl transition-all"
-      >
-        Continuar leyendo
-      </button>
-      {story && (
+  const SuccessScreen: React.FC<{
+    onFinish: () => void;
+    story: Story | null;
+    onDownload: () => void;
+  }> = ({ onFinish, story, onDownload }) => (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
+      <div className="text-8xl mb-8 animate-bounce drop-shadow-xl">🌟</div>
+
+      <h2 className="text-4xl font-bold mb-3 text-indigo-900 text-center">
+        ¡Pago completado con éxito!
+      </h2>
+
+      <p className="text-gray-500 text-center mb-12 max-w-sm font-medium leading-relaxed">
+        Tu cuento ya es tuyo.  
+        Te recomendamos descargarlo para guardarlo para siempre.
+      </p>
+
+      <div className="w-full max-w-xs space-y-4">
         <button
-          onClick={() => downloadStory(story)}
-          className="w-full bg-white border-2 border-indigo-200 text-indigo-700 font-bold py-4 rounded-2xl shadow-sm"
+          onClick={onDownload}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-5 rounded-2xl shadow-xl transition-all"
         >
-          📥 Descargar cuento en PDF
+          ⬇️ Descargar mi cuento (PDF)
         </button>
-      )}
+
+        <button
+          onClick={onFinish}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl shadow-xl transition-all"
+        >
+          Continuar leyendo
+        </button>
       </div>
-  </div>
-);
+    </div>
+  );
+
 
 // --- Main App Logic ---
 
@@ -1047,7 +1055,6 @@ useEffect(() => {
           onFinish={() => {
             setShowPaymentSuccess(false);
             if (story) {
-              setCurrentReadingPage(0);
               setScreen(AppScreen.READER);
             }
           }}
