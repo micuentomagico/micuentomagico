@@ -574,53 +574,58 @@ const StoryReader: React.FC<{
   onBackToLibrary: () => void;
   initialPage?: number;
 }> = ({ story, onFinished, isPaid, onShowPaywall, onBackToLibrary, initialPage = 0 }) => {
+
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [nightMode, setNightMode] = useState(false);
   const [direction, setDirection] = useState<1 | -1>(1);
-
   const totalPages = story.pages.length;
 
+  // Cargar la página desde localStorage cuando el componente se monta
+  useEffect(() => {
+    const savedPage = localStorage.getItem('currentPage');
+    if (savedPage) {
+      setCurrentPage(parseInt(savedPage)); // Cargamos la página desde localStorage
+    }
+  }, []);
+
   const handleNext = () => {
-  if (currentPage === 3 && !isPaid) {
-    onShowPaywall(currentPage);
-    return;
-  }
-  if (currentPage < totalPages - 1) {
-    setDirection(1); // 👉 avanzamos
-    setCurrentPage(prev => prev + 1);
-  } else {
-    onFinished();
-  }
-};
+    if (currentPage === 3 && !isPaid) {
+      onShowPaywall(currentPage);
+      return;
+    }
+    if (currentPage < totalPages - 1) {
+      setDirection(1); // 👉 avanzamos
+      setCurrentPage(prev => {
+        const newPage = prev + 1;
+        localStorage.setItem('currentPage', newPage.toString()); // Guardamos la página actual
+        return newPage;
+      });
+    } else {
+      onFinished();
+    }
+  };
 
-const handlePrev = () => {
-  if (currentPage > 0) {
-    setDirection(-1); // 👈 retrocedemos
-    setCurrentPage(prev => prev - 1);
-  }
-};
-
+  const handlePrev = () => {
+    if (currentPage > 0) {
+      setDirection(-1); // 👈 retrocedemos
+      setCurrentPage(prev => {
+        const newPage = prev - 1;
+        localStorage.setItem('currentPage', newPage.toString()); // Guardamos la página actual
+        return newPage;
+      });
+    }
+  };
 
   const renderParagraph = (text: string, index: number) => {
     return (
-      <p
-        key={index}
-        className="text-xl md:text-2xl leading-loose text-left font-medium opacity-90 text-pretty"
-      >
+      <p key={index} className="text-xl md:text-2xl leading-loose text-left font-medium opacity-90 text-pretty">
         {text}
       </p>
     );
   };
 
-
   return (
-    <div
-      className={`min-h-screen transition-colors duration-700 overflow-hidden ${
-        nightMode
-          ? 'bg-[#121212] text-[#E5E5E5]'
-          : 'bg-[#FBF7F2] text-[#2D3142]'
-      }`}
-    >
+    <div className={`min-h-screen transition-colors duration-700 overflow-hidden ${nightMode ? 'bg-[#121212] text-[#E5E5E5]' : 'bg-[#FBF7F2] text-[#2D3142]'}`}>
       <div className="max-w-[680px] mx-auto px-8 py-12 min-h-screen flex flex-col">
         
         <div className="flex justify-between items-center h-14 mb-8">
@@ -660,8 +665,6 @@ const handlePrev = () => {
           </div>
         </div>
 
-
-
         <div className="space-y-8 pb-4 mt-8">
           <div className="h-[3px] bg-gray-200/20 rounded-full overflow-hidden">
             <div 
@@ -674,19 +677,13 @@ const handlePrev = () => {
             <button 
               onClick={handlePrev}
               disabled={currentPage === 0}
-              className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 ${
-                currentPage === 0 
-                  ? 'opacity-0 pointer-events-none' 
-                  : nightMode ? 'bg-white/5 border-white/10' : 'bg-white border-purple-50 shadow-sm'
-              }`}
+              className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 ${currentPage === 0 ? 'opacity-0 pointer-events-none' : nightMode ? 'bg-white/5 border-white/10' : 'bg-white border-purple-50 shadow-sm'}`}
             >
               ←
             </button>
             <button 
               onClick={handleNext}
-              className={`flex-[4] py-5 rounded-2xl font-black shadow-2xl transition-all text-white transform active:scale-95 ${
-                nightMode ? 'bg-indigo-900/40 text-indigo-100' : 'bg-indigo-600 hover:bg-indigo-700'
-              }`}
+              className={`flex-[4] py-5 rounded-2xl font-black shadow-2xl transition-all text-white transform active:scale-95 ${nightMode ? 'bg-indigo-900/40 text-indigo-100' : 'bg-indigo-600 hover:bg-indigo-700'}`}
             >
               {currentPage === totalPages - 1 ? '¡Fin de la magia! ✨' : 'Continuar'}
             </button>
@@ -697,106 +694,107 @@ const handlePrev = () => {
   );
 };
 
-const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
 
-  const handleStripeCheckout = async () => {
-    try {
-      const response = await fetch(
-        "https://micuentomagico-backend.onrender.com/create-checkout-session",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+  // --- Pantalla de Pago ---
+  const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+    const handleStripeCheckout = async () => {
+      try {
+        const response = await fetch(
+          "https://micuentomagico-backend.onrender.com/create-checkout-session",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Respuesta backend:", data);
+          throw new Error("Backend error");
         }
-      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Respuesta backend:", data);
-        throw new Error("Backend error");
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          console.error("No vino URL de Stripe:", data);
+          alert("Error: Stripe no devolvió la URL");
+        }
+      } catch (err) {
+        console.error("❌ Error iniciando pago:", err);
+        alert("Hubo un error iniciando el pago. Inténtalo de nuevo.");
       }
+    };
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error("No vino URL de Stripe:", data);
-        alert("Error: Stripe no devolvió la URL");
-      }
-    } catch (err) {
-      console.error("❌ Error iniciando pago:", err);
-      alert("Hubo un error iniciando el pago. Inténtalo de nuevo.");
-    }
-  };
-
-
-  return (
-    <div className="min-h-screen bg-indigo-50 p-6 flex flex-col items-center justify-center">
-      <div className="max-w-md w-full bg-white p-10 rounded-[3rem] shadow-2xl border border-indigo-100">
-        <h2 className="text-3xl font-bold mb-4 text-center text-[#2D3142]">
-          Estás a un paso de terminar el cuento ✨
-        </h2>
-        <p className="text-center text-gray-500 mb-8 text-sm">
-          El pago es seguro y el cuento será tuyo para siempre.
-        </p>
-        
-        <div className="space-y-4 mb-10">
-          <div className="flex justify-between items-center p-6 bg-indigo-50/50 rounded-3xl border-2 border-indigo-200">
-            <span className="font-bold text-indigo-900">
-              Cuento personalizado
-            </span>
-            <span className="text-2xl font-black text-indigo-600">
-              2,99 €
-            </span>
-          </div>
-          <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-            Pago único por historia · Acceso vitalicio
+    return (
+      <div className="min-h-screen bg-indigo-50 p-6 flex flex-col items-center justify-center">
+        <div className="max-w-md w-full bg-white p-10 rounded-[3rem] shadow-2xl border border-indigo-100">
+          <h2 className="text-3xl font-bold mb-4 text-center text-[#2D3142]">
+            Tu cuento mágico está casi listo ✨
+          </h2>
+          <p className="text-center text-gray-500 mb-8 text-sm">
+            ¡Estás a solo un paso! El pago es seguro y el cuento será tuyo para siempre.
           </p>
-          <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-            Sin suscripciones
-          </p>
-        </div>
 
-        <div className="space-y-4">
-          <button 
-            onClick={handleStripeCheckout}
-            className="w-full bg-black text-white flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg"
-          >
-            <span className="text-lg"></span> Pay
-          </button>
-
-          <button 
-            onClick={handleStripeCheckout}
-            className="w-full bg-white border-2 border-gray-100 text-gray-700 flex items-center justify-center gap-3 py-5 rounded-2xl font-bold"
-          >
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Pay_Logo_%282020%29.svg/2560px-Google_Pay_Logo_%282020%29.svg.png" 
-              alt="GPay" 
-              className="h-5" 
-            />
-          </button>
-          
-          <div className="py-4 flex items-center gap-4">
-            <div className="flex-1 h-[1px] bg-gray-100"></div>
-            <span className="text-[10px] text-gray-300 uppercase font-black tracking-widest">
-              Tarjeta bancaria
-            </span>
-            <div className="flex-1 h-[1px] bg-gray-100"></div>
+          <div className="space-y-4 mb-10">
+            <div className="flex justify-between items-center p-6 bg-indigo-50/50 rounded-3xl border-2 border-indigo-200">
+              <span className="font-bold text-indigo-900">
+                Cuento personalizado
+              </span>
+              <span className="text-2xl font-black text-indigo-600">
+                2,99 €
+              </span>
+            </div>
+            <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+              Pago único por historia · Acceso vitalicio
+            </p>
+            <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+              Sin suscripciones
+            </p>
           </div>
-          
-          <button 
-            onClick={handleStripeCheckout}
-            className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold shadow-lg shadow-indigo-200"
-          >
-            Pagar con tarjeta
-          </button>
+
+          <div className="space-y-4">
+            <button 
+              onClick={handleStripeCheckout}
+              className="w-full bg-black text-white flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg"
+            >
+              <span className="text-lg"></span> Pagar ahora – 2,99 €
+            </button>
+
+            <button 
+              onClick={handleStripeCheckout}
+              className="w-full bg-white border-2 border-gray-100 text-gray-700 flex items-center justify-center gap-3 py-5 rounded-2xl font-bold"
+            >
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Pay_Logo_%282020%29.svg/2560px-Google_Pay_Logo_%282020%29.svg.png" 
+                alt="GPay" 
+                className="h-5" 
+              />
+            </button>
+
+            <div className="py-4 flex items-center gap-4">
+              <div className="flex-1 h-[1px] bg-gray-100"></div>
+              <span className="text-[10px] text-gray-300 uppercase font-black tracking-widest">
+                Tarjeta bancaria
+              </span>
+              <div className="flex-1 h-[1px] bg-gray-100"></div>
+            </div>
+
+            <button 
+              onClick={handleStripeCheckout}
+              className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold shadow-lg shadow-indigo-200"
+            >
+              Pagar con tarjeta
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
+  // --- Pantalla de Éxito ---
   const SuccessScreen: React.FC<{
     onFinish: () => void;
     story: Story | null;
@@ -805,9 +803,8 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
       <div className="text-8xl mb-8 animate-bounce drop-shadow-xl">🌟</div>
 
       <p className="text-gray-500 text-center mb-10 max-w-sm font-medium leading-relaxed">
-        Tu cuento ya es tuyo 💜  
-        Se ha guardado en tu biblioteca y además puedes descargarlo en PDF
-        para no perderlo nunca.
+        ¡Felicidades! Tu cuento está listo. 💜  
+        Lo puedes leer siempre que quieras y ahora lo tienes guardado en tu biblioteca. También puedes descargarlo en PDF para no perderlo nunca.
       </p>
 
       <div className="w-full max-w-xs space-y-4">
@@ -816,7 +813,7 @@ const PaymentScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => 
             onClick={() => downloadStory(story)}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-5 rounded-2xl shadow-xl transition-all"
           >
-            ⬇️ Descargar mi cuento (PDF)
+            ¡Descargar mi cuento ahora! ⬇️
           </button>
         )}
 
