@@ -948,14 +948,9 @@ useEffect(() => {
   const handleSelectStoryFromLibrary = (selectedStory: Story) => {
       setStory(selectedStory);
       setIsPaid(true);
-      
-      // Verificamos si hay una página guardada en localStorage
-      const savedPage = localStorage.getItem('currentPage');
-      if (savedPage) {
-        setCurrentReadingPage(parseInt(savedPage));  // Cargamos la página guardada
-      } else {
-        setCurrentReadingPage(0);  // Si no hay página guardada, empezamos desde la primera
-      }
+
+      // No leer la página guardada en localStorage, siempre empezar desde la página 0
+      setCurrentReadingPage(0); // Forzamos que empiece desde la primera página
 
       setScreen(AppScreen.READER);
   };
