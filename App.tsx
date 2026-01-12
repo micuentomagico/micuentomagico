@@ -951,7 +951,7 @@ useEffect(() => {
 
       // No leer la página guardada en localStorage, siempre empezar desde la página 0
       setCurrentReadingPage(0); // Forzamos que empiece desde la primera página
-
+      localStorage.removeItem('currentPage');
       setScreen(AppScreen.READER);
   };
 
